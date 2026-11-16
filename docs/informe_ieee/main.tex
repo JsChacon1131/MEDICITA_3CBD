@@ -1,0 +1,40 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{array}
+\title{MediCita: integración de interfaz web, autenticación segura y gestión de citas médicas}
+\author{\IEEEauthorblockN{[Integrantes del equipo]}\IEEEauthorblockA{[Universidad]\\[Curso y docente]}}
+\begin{document}
+\maketitle
+\begin{abstract}
+Se presenta la integración de la aplicación web MediCita, orientada a sustituir el agendamiento telefónico de un centro médico privado. El producto combina una interfaz HTML, CSS y JavaScript con una API REST de Node.js y Express y persistencia MySQL, incorpora autenticación basada en hash con salt, y ofrece funcionalidades para pacientes y administradores. El análisis distingue las prestaciones implementadas de las que requieren validación con la base de datos de la entrega.
+\end{abstract}
+\begin{IEEEkeywords}
+MediCita, API REST, MySQL, scrypt, autenticación, aplicaciones web.
+\end{IEEEkeywords}
+\section{Introducción}
+El Caso 7 plantea la sustitución de la gestión telefónica de citas por una aplicación web accesible desde un navegador. Se requieren cuentas de pacientes, catálogo de especialistas, citas, reseñas posteriores a la atención, consulta de tres clases de exámenes y herramientas básicas de administración. Adicionalmente, el cliente requiere conocer paciente, médico, fecha y tarifa de cada reserva para elaborar informes económicos. La seguridad de las credenciales es un requisito explícito debido al riesgo de exposición de contraseñas.
+\section{Arquitectura y evolución desde el segundo corte}
+La API REST del segundo corte constituye la base de la solución. El backend Node.js/Express organiza rutas, controladores, servicios y repositorios; MySQL conserva entidades de pacientes, usuarios, especialistas, especialidades, horarios, citas, reseñas y resultados. El tercer corte incorpora la capa de presentación y endurece el almacenamiento de credenciales. Se mantienen los contratos de recursos REST y se agregan endpoints administrativos de consulta agregada.
+\section{Implementación de la interfaz}
+La traducción del prototipo de Figma se realizó con HTML semántico, estilos CSS adaptables y JavaScript nativo. Las pantallas de inicio de sesión, inicio, especialistas, agendamiento, historial, resultados, reseñas y gestión utilizan solicitudes \texttt{fetch} a rutas \texttt{/api/...}. No se utilizan datos médicos o económicos predefinidos para poblar listas. Los retratos usados en el directorio son imágenes ilustrativas locales con alternativa predeterminada; no se presentan como fotografías verificadas de los profesionales. Durante solicitudes se visualizan estados de carga, los errores de la API se comunican al usuario y las operaciones completadas generan confirmaciones. La visualización clínica reemplaza respuestas JSON crudas por fichas diferenciadas según el tipo de examen.
+\section{Autenticación segura y migración}
+En el segundo corte las contraseñas se almacenaban en texto plano. En el tercero, el servidor utiliza \emph{scrypt} con salt aleatorio individual de 16 bytes, derivando una clave de 64 bytes y guardándola en la columna existente \texttt{users.password} bajo un formato que diferencia salt y hash. Este mecanismo dificulta ataques masivos de diccionario frente al almacenamiento en texto plano, debido al costo computacional y a la unicidad del salt \cite{rfc7914,owasp}. El registro genera el hash antes de persistir, y el inicio de sesión verifica la contraseña con el derivador y una comparación de tiempo constante. La migración de cuentas heredadas se ejecuta del lado del servidor mediante un script transaccional, que omite hashes válidos y exige aprobación explícita tras respaldo.
+\par\textbf{Evidencia pendiente de incorporar:} resultado de auditoría previa, ejecución de migración, auditoría posterior y prueba de login heredado. No se debe afirmar que la migración ya se ejecutó antes de comprobarlo en la base de datos usada para entregar.
+\section{Gestión funcional del caso}
+El sistema permite reservar, consultar, reprogramar y cancelar citas. La disponibilidad resta las franjas ocupadas y el servidor valida conflictos; las citas canceladas permanecen en el historial. Un paciente puede consultar sus propios resultados numéricos, cualitativos y de imagenología. Las reseñas requieren citas marcadas como completadas; la calificación es obligatoria y son opcionales el comentario, las etiquetas y el tiempo de espera. En administración se incluyen altas, consultas y cambios de entidades del catálogo, agenda del día y reporte filtrable por fechas. Los reportes suman \texttt{price\_at\_booking} por estado. La suma de citas atendidas expresa \emph{valor de las consultas registradas}, no recaudación bancaria: el esquema actual carece de transacciones de pago.
+\section{Resultados de pruebas y limitaciones}
+Las verificaciones previas mostraron persistencia de reservas, reprogramación y cancelación y consulta de resultados numéricos en MySQL. Las pruebas de catálogo se realizaron con registros ficticios creados y eliminados durante validación. Se añadieron pruebas unitarias de cálculo agregado y tratamiento de contraseñas; para la entrega debe ejecutarse la suite completa con dependencias instaladas y documentarse su salida. También deben comprobarse en navegador la creación de reseñas posteriores a la atención, sus campos opcionales, el acceso administrativo y el rechazo de solicitudes de pacientes a recursos de otros usuarios. El sistema requiere ejecución y base de datos local y no implementa pasarela de pagos, recordatorios por mensajería ni un servicio de despliegue público.
+\section{Propuesta de mejora de seguridad}
+Una evolución pertinente es incorporar limitación de intentos de autenticación por cuenta y origen, combinada con monitoreo de intentos fallidos y, para personal administrativo, autenticación multifactor. El riesgo mitigado es el uso repetido de credenciales adivinadas o filtradas, que el hashing de la base no impide cuando un atacante interactúa directamente con el login. NIST recomienda controles contra ataques en línea sobre autenticadores y mecanismos de autenticación apropiados al riesgo \cite{nist}; OWASP documenta medidas complementarias de gestión segura de credenciales \cite{owasp}. Estas mejoras requieren diseño de políticas, persistencia de intentos, recuperación de acceso y validación de experiencia del usuario, por lo que exceden el alcance funcional de este corte.
+\section{Conclusiones}
+MediCita atiende la necesidad de ofrecer al paciente una ruta web para registrarse, consultar profesionales y gestionar reservas sin intervención telefónica. El modelo de citas conserva paciente, médico, fecha, precio y estado, habilitando información agregada para la administración. La protección de claves migra de texto plano a hashes con salt del lado del servidor, en respuesta al riesgo identificado por el cliente. Quedan como límites la ausencia de registro de pagos reales, la necesidad de completar pruebas integradas con MySQL y la validación de la migración de credenciales heredadas antes de declarar lista la entrega.
+\begin{thebibliography}{00}
+\bibitem{rfc7914} C. Percival y S. Josefsson, ``The scrypt Password-Based Key Derivation Function,'' RFC 7914, 2016. [En línea]. Disponible: \url{https://www.rfc-editor.org/rfc/rfc7914}
+\bibitem{owasp} OWASP Foundation, ``Password Storage Cheat Sheet,'' OWASP Cheat Sheet Series. [En línea]. Disponible: \url{https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html}
+\bibitem{nist} National Institute of Standards and Technology, ``Digital Identity Guidelines: Authentication and Authenticator Management,'' SP 800-63B. [En línea]. Disponible: \url{https://pages.nist.gov/800-63-4/sp800-63b.html}
+\end{thebibliography}
+\end{document}
