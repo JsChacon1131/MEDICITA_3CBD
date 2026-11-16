@@ -1,24 +1,39 @@
 # MediCita — Corte 3
 
-Aplicación web de gestión de citas médicas (Node.js, Express, MySQL y frontend HTML/CSS/JavaScript).
+Aplicación web de gestión de citas médicas desarrollada con Node.js, Express, MySQL y HTML/CSS/JavaScript.
 
-## Estado de publicación
+## Contenido del proyecto
 
-**Pendiente subir el código fuente completo.** Este repositorio se preparó para recibir la entrega desde el archivo `MediCita_Corte3_Entrega_GitHub_Listo.zip` (80 archivos). Este README no constituye por sí mismo la entrega del software.
+- `src/`: API REST, autenticación, servicios, controladores y persistencia.
+- `public/`: interfaz web y recursos visuales.
+- `database/medicita.sql`: esquema SQL del proyecto.
+- `docs/openapi.yaml`: contrato OpenAPI, disponible mediante Swagger UI.
+- `postman/`: colección de peticiones REST.
+- `scripts/`: auditoría y migración de contraseñas.
+- `tests/`: pruebas automatizadas.
+- `.env.example`: plantilla de variables de entorno sin credenciales reales.
 
-## Instalación (una vez subido el código)
+## Instalación y ejecución
 
-1. Instalar Node.js y MySQL.
-2. Ejecutar `npm install` en la raíz del proyecto.
-3. Importar `database/medicita.sql` en MySQL.
-4. Copiar `.env.example` a `.env` y completar la configuración local con credenciales propias; **no subir `.env`**.
-5. Ejecutar `npm start` y abrir `http://localhost:5000/`.
-6. Documentación de API: `http://localhost:5000/api-docs`.
+1. Instala Node.js y MySQL.
+2. Clona el repositorio y abre su carpeta.
+3. Ejecuta `npm install`.
+4. Importa `database/medicita.sql` en MySQL.
+5. Copia `.env.example` como `.env` y configura la conexión de tu base de datos y un `SESSION_SECRET` aleatorio. Nunca publiques el archivo `.env`.
+6. Ejecuta `npm start`.
+7. Abre `http://localhost:5000/` en tu navegador.
+8. Para la documentación REST, abre `http://localhost:5000/api-docs`.
+
+## Pruebas
+
+- `npm test`: pruebas automatizadas.
+- `npm run audit:passwords`: auditoría de contraseñas (requiere base de datos configurada).
+- `npm run format:check`: validación del formato.
 
 ## Seguridad
 
-No incluir contraseñas, tokens, datos reales de pacientes ni dependencias `node_modules` en el repositorio.
+No publiques contraseñas, tokens, datos reales de pacientes, la carpeta `private_images/` ni las dependencias instaladas en `node_modules/`.
 
-## Documentación
+## Alcance
 
-El código definitivo debe incluir `src/`, `public/`, `database/`, `docs/`, `postman/`, `scripts/`, `tests/`, `package.json` y `package-lock.json`.
+Este repositorio contiene el código fuente, la interfaz, el modelo SQL, la documentación de API y las pruebas del proyecto académico MediCita. Para verificar el funcionamiento se necesita configurar una base de datos MySQL local.
